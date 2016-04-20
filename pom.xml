@@ -17,78 +17,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.apache.camel</groupId>
-            <artifactId>camel-core</artifactId>
-            <version>2.16.2</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.camel</groupId>
-            <artifactId>camel-scala</artifactId>
-            <version>2.16.2</version>
-        </dependency>
-
-        <!-- scala -->
-        <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scala-library</artifactId>
-            <version>2.11.4</version>
-        </dependency>
-        <dependency>
-            <groupId>org.scala-lang.modules</groupId>
-            <artifactId>scala-xml_2.11</artifactId>
-            <version>1.0.4</version>
-        </dependency>
-
-        <!-- logging -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>1.7.12</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>1.7.12</version>
-        </dependency>
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>1.2.17</version>
-        </dependency>
-
-        <!-- json -->
-        <dependency>
-            <groupId>net.sf.json-lib</groupId>
-            <artifactId>json-lib</artifactId>
-            <version>2.4</version>
-            <classifier>jdk15</classifier>
-        </dependency>
-
-
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.6.2</version>
-        </dependency>
-
-        <!-- redis client -->
-        <dependency>
-            <groupId>redis.clients</groupId>
-            <artifactId>jedis</artifactId>
-            <version>2.8.0</version>
-        </dependency>
-
-
-        <!-- testing -->
-        <dependency>
-            <groupId>org.apache.camel</groupId>
-            <artifactId>camel-test</artifactId>
-            <version>2.16.2</version>
-            <scope>test</scope>
-        </dependency>
-
-        <!-- spark -->
-        <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-core_2.10</artifactId>
             <version>1.6.0</version>
@@ -96,7 +24,7 @@
 
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-mllib_2.11</artifactId>
+            <artifactId>spark-mllib_2.10</artifactId>
             <version>1.6.0</version>
         </dependency>
 
@@ -132,17 +60,33 @@
             <version>19.0</version>
         </dependency>
 
+        <!-- json -->
+        <dependency>
+            <groupId>net.sf.json-lib</groupId>
+            <artifactId>json-lib</artifactId>
+            <version>2.4</version>
+            <classifier>jdk15</classifier>
+        </dependency>
+
+
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.6.2</version>
+        </dependency>
+
+        <!-- redis client -->
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+            <version>2.8.0</version>
+        </dependency>
+
         <!-- scala mybatis -->
         <dependency>
             <groupId>org.mybatis.scala</groupId>
-            <artifactId>mybatis-scala-parent_2.11</artifactId>
-            <version>1.0.5</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.mybatis.scala</groupId>
-            <artifactId>mybatis-scala-core_2.11</artifactId>
-            <version>1.0.3</version>
+            <artifactId>mybatis-scala-core_2.10</artifactId>
+            <version>1.0.2</version>
         </dependency>
 
         <!-- db driver -->
@@ -152,33 +96,35 @@
             <version>5.0.8</version>
         </dependency>
 
-        <!--http client -->
         <dependency>
             <groupId>com.ning</groupId>
             <artifactId>async-http-client</artifactId>
             <version>1.9.36</version>
         </dependency>
-
-        <!-- kafka -->
         <dependency>
-            <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka_2.10</artifactId>
-            <version>0.9.0.1</version>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
         </dependency>
-
 
     </dependencies>
 
+
+
     <build>
-        <defaultGoal>install</defaultGoal>
         <sourceDirectory>src/main/scala</sourceDirectory>
         <testSourceDirectory>src/test/scala</testSourceDirectory>
-
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+        </resources>
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+            </testResource>
+        </testResources>
         <plugins>
-            <!--Bind the maven-assembly-plugin to the package phase
-                this will create a jar file without the storm dependencies
-                suitable for deployment to a cluster.
-            -->
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
@@ -187,7 +133,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass></mainClass>
+                            <mainClass>com.moon.app.KafkaWordCount</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -201,14 +147,13 @@
                     </execution>
                 </executions>
             </plugin>
-            <!-- the Maven compiler plugin will compile Java source files -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.3</version>
                 <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
 
                 </configuration>
             </plugin>
@@ -220,90 +165,6 @@
                     <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>
-
-            <!-- the Maven Scala plugin will compile Scala source files -->
-            <plugin>
-                <groupId>net.alchim31.maven</groupId>
-                <artifactId>scala-maven-plugin</artifactId>
-                <version>3.2.2</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>compile</goal>
-                            <goal>testCompile</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <!-- configure the eclipse plugin to generate eclipse project descriptors for a Scala project -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-eclipse-plugin</artifactId>
-                <version>2.9</version>
-                <configuration>
-
-                    <projectnatures>
-
-                        <projectnature>org.scala-ide.sdt.core.scalanature</projectnature>
-                        <projectnature>org.eclipse.jdt.core.javanature</projectnature>
-                    </projectnatures>
-                    <buildcommands>
-                        <buildcommand>org.scala-ide.sdt.core.scalabuilder</buildcommand>
-                    </buildcommands>
-                    <classpathContainers>
-                        <classpathContainer>org.scala-ide.sdt.launching.SCALA_CONTAINER</classpathContainer>
-                        <classpathContainer>org.eclipse.jdt.launching.JRE_CONTAINER</classpathContainer>
-                    </classpathContainers>
-                    <excludes>
-                        <exclude>org.scala-lang:scala-library</exclude>
-                        <exclude>org.scala-lang:scala-compiler</exclude>
-                    </excludes>
-                    <sourceIncludes>
-                        <sourceInclude>**/*.scala</sourceInclude>
-                        <sourceInclude>**/*.java</sourceInclude>
-                    </sourceIncludes>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>2.4.3</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <filters>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/*.SF</exclude>
-                                        <exclude>META-INF/*.DSA</exclude>
-                                        <exclude>META-INF/*.RSA</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
-                            <transformers>
-                                <transformer
-                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>com.a.b.Test</mainClass>
-                                </transformer>
-                                <transformer
-                                        implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-                                    <resource>reference.conf</resource>
-                                </transformer>
-                            </transformers>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
         </plugins>
-
-
     </build>
-
 </project>
