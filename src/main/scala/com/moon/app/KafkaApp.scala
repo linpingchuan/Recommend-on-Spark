@@ -12,11 +12,7 @@ import org.apache.spark.streaming.{StreamingContext, Seconds}
   */
 object KafkaApp {
   def main(args:Array[String]): Unit ={
-    val array=new Array[String](1)
-
-    array(0)="/home/lin/IdeaProjects/moon/target/recommend-1.0-SNAPSHOT-jar-with-dependencies.jar"
-
-    val conf=new SparkConf().setAppName("kafkaApp").setMaster("local[*]").setJars(array)
+    val conf=new SparkConf().setAppName("kafkaApp").setMaster("local[*]")
     val ssc=new StreamingContext(conf,Seconds(1))
 
     val kafkaParams=Map(
