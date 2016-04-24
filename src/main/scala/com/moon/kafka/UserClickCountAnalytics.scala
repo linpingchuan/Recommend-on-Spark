@@ -6,7 +6,7 @@ import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 import org.apache.spark.SparkConf
 import org.apache.spark.streaming.kafka.KafkaUtils
 import org.apache.spark.streaming.{Seconds, StreamingContext}
-import redis.clients.jedis.JedisPool
+import redis.clients.jedis.{Jedis, JedisPool}
 
 /**
   * Created by lin on 4/10/16.
@@ -15,7 +15,7 @@ object UserClickCountAnalytics {
   def main(args:Array[String]): Unit ={
     // Create a StreamingContext with the given master URL
     val conf=new SparkConf().setAppName("UserClickCountStat")
-    val ssc=new StreamingContext(conf,Seconds(5))
+    val ssc=new StreamingContext(conf,Seconds(1))
 
     // Kafka configurations
     val topics=Set("user_events")
@@ -40,50 +40,11 @@ object UserClickCountAnalytics {
     userClicks.foreachRDD(rdd => {
       rdd.foreachPartition(partitionOfRecords => {
         partitionOfRecords.foreach(pair =>{
-          object InternalRedisClient extends Serializable{
-            @transient private var pool:JedisPool = null
-            def makePool(redisHost:String,redisPort:Int,redisTimeout:Int,maxTotal:Int,maxIdle:Int,minIdle:Int): Unit ={
-              makePool(redisHost,redisPort,redisTimeout,maxTotal,maxIdle,minIdle,true,false,10000)
-            }
-            def makePool(redisHost:String,redisPort:Int,redisTimeout:Int,maxTotal:Int,maxIdle:Int,minIdle:Int,testOnBorrow:Boolean,testOnReturn:Boolean,maxWaitMillis:Long): Unit ={
-              if(pool == null){
-                val poolConfig=new GenericObjectPoolConfig
-                poolConfig.setMaxTotal(maxTotal)
-                poolConfig.setMaxIdle(maxIdle)
-                poolConfig.setMinIdle(minIdle)
-                poolConfig.setTestOnBorrow(testOnBorrow)
-                poolConfig.setTestOnReturn(testOnReturn)
-                poolConfig.setMaxWaitMillis(maxWaitMillis)
-                pool=new JedisPool(poolConfig,redisHost,redisPort,redisTimeout)
-
-                val hook=new Thread{
-                  override def run=pool.destroy()
-                }
-                sys.addShutdownHook(hook.run)
-              }
-            }
-            def getPool:JedisPool={
-              assert(pool!=null)
-              pool
-            }
-          }
-          // Redis configurations
-          val maxTotal=10
-          val maxIdle=10
-          val minIdle=1
-          val redisHost="localhost"
-          val redisPort=6379
-          val redisTimeout=30000
-          val dbIndex=1
-          InternalRedisClient.makePool(redisHost,redisPort,redisTimeout,maxTotal,maxIdle,minIdle)
-
           val uid=pair._1
           val clickCount=pair._2
           println("uid: "+uid+" clickCount: "+clickCount)
-          val jedis=InternalRedisClient.getPool.getResource
-          jedis.select(dbIndex)
+          val jedis=new Jedis("localhost",6379)
           jedis.hincrBy(clickHashKey,uid,clickCount)
-          InternalRedisClient.getPool.returnBrokenResource(jedis)
         })
       })
     })

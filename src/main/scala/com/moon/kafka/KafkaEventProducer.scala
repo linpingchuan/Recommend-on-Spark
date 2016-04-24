@@ -54,7 +54,6 @@ object KafkaEventProducer {
       event.put("click_count",click)
       event.put("event_time",System.currentTimeMillis.toString)
 
-
       producer.send(new KeyedMessage[String,String](topic,event.toString()))
       println("Message sent: "+event)
       Thread.sleep(200)
