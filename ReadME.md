@@ -52,9 +52,4 @@ bin/kafka-topics.sh --create --zookeeper localhost:2181 \
 bin/kafka-console-producer.sh --broker-list localhost:9092 --topic test
 ```
 
-** KafkaCount **
-``` Scala
-object KafkaWordCount {
 
-}
-```
