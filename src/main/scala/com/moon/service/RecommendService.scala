@@ -18,8 +18,9 @@ import scala.util.Random
   * Created by lin on 3/9/16.
   */
 object RecommendService {
-  val log=LoggerFactory.getLogger(RecommendService.getClass);
-  val db=Config.persistenceContext
+  val log = LoggerFactory.getLogger(RecommendService.getClass)
+  val db = Config.persistenceContext
+
   def buildArtistAlias(rawArtistAlias: RDD[String]): Map[Int, Int] =
     rawArtistAlias.flatMap { line =>
       val tokens = line.split('\t')
@@ -31,45 +32,50 @@ object RecommendService {
     }.collectAsMap()
 
 
-
   def buildRatings(rawUserArtistData: RDD[String],
-                    bArtistAlias: Broadcast[Map[Int, Int]]) = {
+                   bArtistAlias: Broadcast[Map[Int, Int]]) = {
     rawUserArtistData.map { line =>
       val Array(userID, artistID, count) = line.split(' ').map(_.toInt)
       val finalArtistID = bArtistAlias.value.getOrElse(artistID, artistID)
       Rating(userID, finalArtistID, count)
     }
   }
-  def buildRatings(rawCustomerMenuData:DataFrame) ={
-    rawCustomerMenuData.map{x =>
+
+  def buildRatings(rawCustomerMenuData: DataFrame) = {
+    rawCustomerMenuData.map { x =>
       Rating(x.getAs[Long]("user_behavior_fk_customer_id").toInt,
-        x.getAs[Long]("user_behavior_fk_shop_menu_id").toInt,x.getAs[Long]("browse_shop_count").toDouble)
+        x.getAs[Long]("user_behavior_fk_shop_menu_id").toInt, x.getAs[Long]("browse_shop_count").toDouble)
     }
   }
-  def model(rawCustomerMenuData:DataFrame,rawMenuData:DataFrame,userID:Int): Unit ={
-    val trainData=buildRatings(rawCustomerMenuData).cache()
 
+  def model(rawCustomerMenuData: DataFrame, rawMenuData: DataFrame, userID: Int): Unit = {
+    val trainData = buildRatings(rawCustomerMenuData).cache()
     val model = ALS.trainImplicit(trainData, 10, 5, 0.01, 1.0)
-
     trainData.unpersist()
 
-    val recommendations=model.recommendProducts(userID,5)
-    recommendations.foreach(x =>{
-      log.info("(CustomerID,MenuID,Rating) => {}",x)
-      insert(x.user,x.product,x.rating)
-    })
+    val recommendations = model.recommendProducts(userID, 5)
+    if (recommendations != null)
+      log.info("recommendations count: ", recommendations.length)
+    else
+      log.info("recommendations is null..")
+
+    //    recommendations.foreach(x =>{
+    //      log.info("(CustomerID,MenuID,Rating) => {}",x)
+    //insert(x.user,x.product,x.rating)
+    //    })
   }
-  def insert(customerId:Long,shopMenuId:Long,userShopMenuScore:Double): Unit ={
-    val db=Config.persistenceContext
-    db.transaction{implicit session=>
-      val shopMenu=new ShopMenu
-      shopMenu.id=shopMenuId
-      val customer=new Customer
-      customer.id=customerId
-      val behavior=new UserBehavior
-      behavior.shopMenu=shopMenu
-      behavior.customer=customer
-      behavior.userShopMenuScore=userShopMenuScore
+
+  def insert(customerId: Long, shopMenuId: Long, userShopMenuScore: Double): Unit = {
+    val db = Config.persistenceContext
+    db.transaction { implicit session =>
+      val shopMenu = new ShopMenu
+      shopMenu.id = shopMenuId
+      val customer = new Customer
+      customer.id = customerId
+      val behavior = new UserBehavior
+      behavior.shopMenu = shopMenu
+      behavior.customer = customer
+      behavior.userShopMenuScore = userShopMenuScore
       UserBehaviorDao insert behavior
     }
   }
@@ -88,8 +94,8 @@ object RecommendService {
           val posItemIDSet = posItemIDs.toSet
           val negative = new ArrayBuffer[Int]()
           var i = 0
-          while (i < allItemIDs.size && negative.size < posItemIDSet.size) {
-            val itemID = allItemIDs(random.nextInt(allItemIDs.size))
+          while (i < allItemIDs.length && negative.size < posItemIDSet.size) {
+            val itemID = allItemIDs(random.nextInt(allItemIDs.length))
             if (!posItemIDSet.contains(itemID)) {
               negative += itemID
             }
@@ -125,7 +131,7 @@ object RecommendService {
 
   def evaluate(
                 sc: SparkContext,
-                rawCustomerMenuData:DataFrame): Unit = {
+                rawCustomerMenuData: DataFrame): Unit = {
 
     val allData = buildRatings(rawCustomerMenuData)
     val Array(trainData, cvData) = allData.randomSplit(Array(0.9, 0.1))
@@ -151,16 +157,16 @@ object RecommendService {
 
   def recommend(
                  sc: SparkContext,
-                 rawCustomerMenuData:DataFrame,rawMenuData:DataFrame,userID:Int): Unit = {
+                 rawCustomerMenuData: DataFrame, rawMenuData: DataFrame, userID: Int): Unit = {
 
     val allData = buildRatings(rawCustomerMenuData).cache()
     val model = ALS.trainImplicit(allData, 50, 10, 1.0, 40.0)
     allData.unpersist()
 
     val recommendations = model.recommendProducts(userID, 5)
-    recommendations.foreach(x =>{
-      log.info("(CustomerID,MenuID,Rating) => {}",x)
-      insert(x.user,x.product,x.rating)
+    recommendations.foreach(x => {
+      log.info("(CustomerID,MenuID,Rating) => {}", x)
+      insert(x.user, x.product, x.rating)
     })
   }
 

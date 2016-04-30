@@ -29,7 +29,7 @@ object Main {
     val rawCustomerMenuData=sqlContext.read.jdbc(url,"user_behavior",prop)
     val rawMenuData=sqlContext.read.jdbc(url,"shop_menu",prop)
 
-    RecommendService.model(rawCustomerMenuData, rawMenuData,1000019)
+    RecommendService.model(rawCustomerMenuData, rawMenuData,1014)
     //RecommendService.evaluate(sc,rawCustomerMenuData)
 //    RecommendService.recommend(sc,rawCustomerMenuData,rawMenuData,128)
   }
