@@ -6,19 +6,22 @@ import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 import org.apache.spark.SparkConf
 import org.apache.spark.streaming.kafka.KafkaUtils
 import org.apache.spark.streaming.{Seconds, StreamingContext}
+import org.slf4j.LoggerFactory
 import redis.clients.jedis.{Jedis, JedisPool}
 
 /**
   * Created by lin on 4/10/16.
   */
 object UserClickCountAnalytics {
+  val LOG=LoggerFactory.getLogger(UserClickCountAnalytics.getClass)
+
   def main(args:Array[String]): Unit ={
     // Create a StreamingContext with the given master URL
-    val conf=new SparkConf().setAppName("UserClickCountStat")
+    val conf=new SparkConf().setAppName("Recommender")
     val ssc=new StreamingContext(conf,Seconds(1))
 
     // Kafka configurations
-    val topics=Set("user_events")
+    val topics=Set("user_view_topics")
     val brokers="localhost:9092"
     val kafkaParams=Map[String,String](
       "metadata.broker.list" -> brokers,
@@ -40,11 +43,12 @@ object UserClickCountAnalytics {
     userClicks.foreachRDD(rdd => {
       rdd.foreachPartition(partitionOfRecords => {
         partitionOfRecords.foreach(pair =>{
-          val uid=pair._1
-          val clickCount=pair._2
-          println("uid: "+uid+" clickCount: "+clickCount)
-          val jedis=new Jedis("localhost",6379)
-          jedis.hincrBy(clickHashKey,uid,clickCount)
+            val uid=pair._1
+            val clickCount=pair._2
+            println("uid: "+uid+" clickCount: "+clickCount)
+            LOG.info("uid: {}",uid)
+            val jedis=new Jedis("localhost",6379)
+            jedis.hincrBy(clickHashKey,uid,clickCount)
         })
       })
     })

@@ -34,6 +34,7 @@ class UserBehaviorDaoTest {
       }
     })
   }
+
   @Test
   def testUserMenu(): Unit ={
     Source.fromFile("/home/lin/Downloads/profiledata/user_artist_data.txt").getLines().foreach( x =>{
@@ -48,6 +49,8 @@ class UserBehaviorDaoTest {
   }
   @Test
   def test(): Unit ={
-    println(UserBehaviorDao.queryMenuAlias().getOrDefault(10229949,String.valueOf("10229949"))
+    println(UserBehaviorDao.queryMenuAliasCount())
+    println(UserBehaviorDao.queryRawMenuDataCount())
+//    println(UserBehaviorDao.queryMenuAlias().getOrDefault(10229949,String.valueOf("10229949")))
   }
 }
