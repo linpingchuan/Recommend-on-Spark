@@ -5,10 +5,8 @@ import java.util.Properties
 import kafka.javaapi.producer.Producer
 import kafka.producer.{KeyedMessage, ProducerConfig}
 import net.sf.json.JSONObject
-import org.apache.spark.mllib.recommendation.Rating
 
 import scala.io.Source
-import scala.util.Random
 
 /**
   * Created by lin on 4/21/16.

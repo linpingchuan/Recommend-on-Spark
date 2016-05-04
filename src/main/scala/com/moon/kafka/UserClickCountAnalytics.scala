@@ -2,12 +2,11 @@ package com.moon.kafka
 
 import kafka.serializer.StringDecoder
 import net.sf.json._
-import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 import org.apache.spark.SparkConf
 import org.apache.spark.streaming.kafka.KafkaUtils
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.slf4j.LoggerFactory
-import redis.clients.jedis.{Jedis, JedisPool}
+import redis.clients.jedis.Jedis
 
 /**
   * Created by lin on 4/10/16.

@@ -14,6 +14,8 @@ import org.apache.spark.streaming.kafka.KafkaUtils
 import org.apache.spark.streaming.{StreamingContext, Seconds}
 import org.slf4j.LoggerFactory
 
+
+
 /**
   * Created by lin on 4/12/16.
   */
@@ -22,7 +24,7 @@ object KafkaApp {
 
   def main(args: Array[String]): Unit = {
     val conf = new SparkConf().setAppName("Recommender").setMaster("local[*]")
-    val ssc = new StreamingContext(conf, Seconds(10))
+    val ssc = new StreamingContext(conf, Seconds(60))
     val topics = Set("user_events")
     val brokers = "localhost:9092"
     val kafkaParams = Map(
@@ -35,7 +37,6 @@ object KafkaApp {
 
     val events = kafkaStream.flatMap(line => {
       val data = JSONObject.fromObject(line._2)
-      LOG.info("data : {}",data)
       Some(data)
     }).cache
 
@@ -50,29 +51,12 @@ object KafkaApp {
 
       recommendProduct.foreach(x => {
         x._2.foreach(ratting => {
-          LOG.info("recommendProduct : {}",ratting.product+":"+ratting.rating+":"+ratting.user)
-          JedisUtils.pool.getResource.hincrBy("app::user::product", ratting.product + ":" + ratting.rating, ratting.user)
+          LOG.info("recommendProduct : {}",ratting.user+":"+ratting.rating+":"+ratting.product)
+          JedisUtils.pool.getResource.hincrByFloat(String.valueOf(ratting.user), String.valueOf(ratting.product) , ratting.rating)
         })
       })
 
     })
-
-    //
-    //    val userEvents=events.map(x => ((x.getInt("userId"),x.getInt("menuId"),x.getInt("count"))))
-    //    events.foreachRDD(rdd => {
-    //      rdd.foreachPartition(partitionOfRecords => {
-    //        partitionOfRecords.foreach(pair => {
-    ////          println(pair._1)
-    //        })
-    //      })
-    //      val trainData=rdd.map(x=>{
-    //        Rating(x.getInt("userId"),x.getInt("menuId"),x.getInt("count"))
-    //      })
-    //      LOG.info("trainData count: {}",trainData.count())
-    ////      val model=ALS.trainImplicit(trainData,10,5,0.01,1.0)
-    ////      val recommendProduct=model.recommendProductsForUsers(5)
-    ////      LOG.info("recommendProduct count: {}",recommendProduct.count())
-    //    })
 
     ssc.start()
     ssc.awaitTermination()
