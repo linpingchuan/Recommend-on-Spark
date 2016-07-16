@@ -24,7 +24,7 @@ object KafkaApp {
 
   def main(args: Array[String]): Unit = {
     val conf = new SparkConf().setAppName("Recommender").setMaster("local[*]")
-    val ssc = new StreamingContext(conf, Seconds(60))
+    val ssc = new StreamingContext(conf, Seconds(1))
     val topics = Set("user_events")
     val brokers = "localhost:9092"
     val kafkaParams = Map(
