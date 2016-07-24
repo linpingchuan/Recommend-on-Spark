@@ -1,4 +1,4 @@
 .idea
-moon.iml
+*.iml
 out
 target
